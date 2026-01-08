@@ -35,7 +35,7 @@ plt.title('Structural Brain Atrophy Across the Lifespan', fontsize=16, pad=20)
 plt.xlabel('Age (Years)', fontsize=12)
 plt.ylabel('Normalized Whole Brain Volume (nwbv)', fontsize=12)
 
-# Save the plot for your application portfolio
+# Save the plot 
 plt.tight_layout()
 plt.savefig('brain_aging_results.png', dpi=300)
 print("Graph saved as 'brain_aging_results.png'.")
@@ -50,7 +50,8 @@ plt.ylabel('Normalized Whole Brain Volume')
 plt.savefig('brain_aging_between_gender.png', dpi=300)
 print("Graph saved as 'brain_aging_between_gender.png'.")
 plt.show()
-# Quick stats by gender
+
+# Correlation analysis by gender
 males = df[df['mf'] == "M" ]# Check your dataset if Male is 1 or 'M'
 females = df[df['mf'] == "F"]
 
@@ -58,10 +59,9 @@ print(f"Male Age-Volume Correlation: {males['age'].corr(males['nwbv']):.2f}")
 print(f"Female Age-Volume Correlation: {females['age'].corr(females['nwbv']):.2f}")
 
 # 1. Define the list of potential columns we want to correlate
-# Note: 'nWBV' and 'etiv' are the most common names in nilearn's OASIS
 potential_cols = ['age', 'educ', 'ses', 'mmse', 'nwbv', 'etiv', 'gender']
 
-# 2. Filter the list to only include columns that actually exist in your df
+# 2. Filter the list to only include columns that actually exist in the df
 existing_cols = [col for col in potential_cols if col in df.columns]
 
 print(f"Generating heatmap for available columns: {existing_cols}")
@@ -76,35 +76,12 @@ plt.title('Correlation Heatmap: Brain Metrics & Clinical Factors', fontsize=15)
 plt.tight_layout()
 plt.savefig('brain_correlation_heatmap.png', dpi=300) # Saves at high resolution
 plt.show()
-# 1. Define 'Super-Agers'
-# Criteria: Age > 75 AND Brain Volume (nWBV) > the average volume of the whole dataset
-average_volume = df['nwbv'].mean()
-super_agers = df[(df['age'] > 75) & (df['nwbv'] > average_volume)]
 
-print(f"\n--- RESILIENCE ANALYSIS ---")
-print(f"Total participants: {len(df)}")
-print(f"Number of Super-Agers identified: {len(super_agers)}")
 
-# 2. Visualize Super-Agers on the existing trend
-plt.figure(figsize=(10, 6))
-# Plot all data in gray to make them the background
-sns.scatterplot(x='age', y='nwbv', data=df, color='gray', alpha=0.3, label='Normal Aging')
-
-# Highlight Super-Agers in Gold
-sns.scatterplot(x='age', y='nwbv', data=super_agers, color='gold', s=100, 
-                label='Super-Agers (High Resilience)', edgecolor='black')
-
-# Add the regression line to show the "average" path they avoided
-sns.regplot(x='age', y='nwbv', data=df, scatter=False, color='red', line_kws={'ls':'--'})
-
-plt.title('Identifying Biological Resilience: Super-Agers vs. Normal Atrophy', fontsize=14)
-plt.legend()
-plt.savefig('super_ager_analysis.png', dpi=300)
-plt.show()
-# 1. Focus on the elderly group (70+)
+# 1. Focus on the elderly group (70+) to identify super agers
 elderly_df = df[df['age'] >= 70]
 
-# 2. Find the 75th percentile of volume *within* that elderly group
+# 2. Find the 75th percentile of volume within that elderly group
 # This identifies the "healthiest" brains for that specific age
 resilience_threshold = elderly_df['nwbv'].quantile(0.75)
 
@@ -126,10 +103,10 @@ sns.regplot(x='age', y='nwbv', data=df, scatter=False, color='red')
 plt.title('Biological Resilience: Identifying Outliers in Brain Aging')
 plt.savefig('resilient_brains_plot.png', dpi=300)
 plt.show()
+
 # 1. Calculate the average MMSE for Super-Agers vs. Other Elderly
 super_ager_mmse = super_agers['mmse'].mean()
 other_elderly_mmse = elderly_df[~elderly_df.index.isin(super_agers.index)]['mmse'].mean()
-
 print(f"\n--- CLINICAL LINK ANALYSIS ---")
 print(f"Average MMSE of Super-Agers: {super_ager_mmse:.2f}")
 print(f"Average MMSE of other elderly (70+): {other_elderly_mmse:.2f}")
@@ -140,7 +117,6 @@ plt.figure(figsize=(8, 6))
 df['Category'] = 'Normal Population'
 df.loc[elderly_df.index, 'Category'] = 'Elderly (70+)'
 df.loc[super_agers.index, 'Category'] = 'Super-Agers'
-
 sns.boxplot(x='Category', y='mmse', data=df[df['Category'] != 'Normal Population'], palette="Set2")
 plt.title('Cognitive Performance (MMSE): Super-Agers vs. Peers')
 plt.ylabel('MMSE Score (0-30)')
